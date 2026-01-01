@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+
+<style>
+:root{
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-danger: #ef4444;
+  --color-bg-light: #ffffff;
+  --color-bg-light-secondary: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-text-primary: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-light: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+}
+
+body{
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  background:var(--color-bg-light-secondary);
+  padding:24px;
+  color:var(--color-text-primary);
+  margin:0;
+}
+
+h2{
+  text-align:center;
+  color:var(--color-text-primary);
+  margin-bottom:32px;
+  font-size:28px;
+  font-weight:600;
+}
+
+table{
+  width:100%;
+  max-width:1400px;
+  margin:0 auto;
+  border-collapse:separate;
+  border-spacing:0;
+  background:var(--color-bg-light);
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 4px 6px var(--color-shadow);
+}
+
+thead{
+  background:var(--color-primary);
+}
+
+th{
+  padding:16px;
+  text-align:left;
+  color:var(--color-text-light);
+  font-weight:600;
+  font-size:14px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  border-bottom:2px solid var(--color-primary-dark);
+}
+
+th:last-child{
+  text-align:center;
+}
+
+td{
+  padding:16px;
+  border-bottom:1px solid var(--color-border);
+  color:var(--color-text-primary);
+  font-size:14px;
+}
+
+tbody tr{
+  transition:background-color 0.2s;
+}
+
+tbody tr:last-child td{
+  border-bottom:none;
+}
+
+tbody tr:hover{
+  background-color:var(--color-bg-light-secondary);
+}
+
+td:last-child{
+  text-align:center;
+}
+
+button{
+  padding:8px 16px;
+  background:var(--color-danger);
+  color:var(--color-text-light);
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+  font-size:13px;
+  transition:all 0.2s;
+}
+
+button:hover{
+  background:#dc2626;
+  transform:translateY(-1px);
+  box-shadow:0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.empty-state{
+  text-align:center;
+  padding:60px 20px;
+  color:var(--color-text-secondary);
+}
+
+.empty-state-icon{
+  font-size:64px;
+  margin-bottom:16px;
+  opacity:0.5;
+}
+
+.empty-state-text{
+  font-size:18px;
+  font-weight:500;
+}
+
+@media(max-width:768px){
+  body{
+    padding:16px;
+  }
+  
+  table{
+    font-size:13px;
+  }
+  
+  th, td{
+    padding:12px 8px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<h2>📋 Booking Admin Dashboard</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Sport</th>
+      <th>Venue</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<script>
+function loadBookings() {
+  fetch("/api/bookings")
+    .then(res => res.json())
+    .then(data => {
+      const rows = document.getElementById("rows");
+      rows.innerHTML = "";
+
+      if(data.length === 0){
+        rows.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:60px 20px;"><div class="empty-state-icon">📭</div><div class="empty-state-text">No bookings yet</div></td></tr>';
+        return;
+      }
+
+      data.forEach(b => {
+        rows.innerHTML += `
+          <tr>
+            <td>${b.id || 'N/A'}</td>
+            <td>${b.name || 'N/A'}</td>
+            <td>${b.phone || 'N/A'}</td>
+            <td>${b.sport || 'N/A'}</td>
+            <td>${b.venue || 'N/A'}</td>
+            <td>${b.date || 'N/A'}</td>
+            <td>${b.time || 'N/A'}</td>
+            <td>
+              <button onclick="deleteBooking(${b.id})">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    })
+    .catch(error => {
+      const rows = document.getElementById("rows");
+      rows.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:60px 20px;color:#ef4444;"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Error loading bookings</div></td></tr>';
+      console.error('Error:', error);
+    });
+}
+
+function deleteBooking(id) {
+  if (!confirm("Delete this booking?")) return;
+
+  fetch(`/api/bookings/${id}`, {
+    method: "DELETE"
+  })
+  .then(() => loadBookings());
+}
+
+loadBookings();
+</script>
+
+</body>
+</html>
